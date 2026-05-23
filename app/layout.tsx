@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next"
-import { Syne, DM_Sans } from "next/font/google"
+import { Syne, DM_Sans, JetBrains_Mono } from "next/font/google"
 import "./globals.css"
 import { BottomNav } from "@/components/layout/BottomNav"
 
@@ -13,9 +13,14 @@ const dmSans = DM_Sans({
   variable: "--font-dm-sans",
 })
 
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-jetbrains-mono",
+})
+
 export const metadata: Metadata = {
   title: "Vamos — World Cup 2026",
-  description: "India's ultimate World Cup fan app. Predict, play, win.",
+  description: "India's ultimate World Cup fan app. Predict, pool, win.",
   manifest: "/manifest.json",
 }
 
@@ -32,8 +37,8 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${syne.variable} ${dmSans.variable}`}>
-      <body className="min-h-dvh bg-bg pb-20">
+    <html lang="en" className={`${syne.variable} ${dmSans.variable} ${jetbrainsMono.variable}`}>
+      <body className="min-h-dvh bg-bg pb-24">
         <main className="mx-auto max-w-lg">{children}</main>
         <BottomNav />
       </body>

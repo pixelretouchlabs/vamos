@@ -2,30 +2,56 @@
 
 import { ButtonHTMLAttributes } from "react"
 
-type Variant = "primary" | "secondary" | "ghost" | "danger"
-
-const variants: Record<Variant, string> = {
-  primary: "bg-red text-white hover:bg-red/90 active:scale-[0.97]",
-  secondary: "bg-surface-light text-white hover:bg-surface-light/80",
-  ghost: "bg-transparent text-text-dim hover:text-white",
-  danger: "bg-red/20 text-red hover:bg-red/30",
-}
-
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: Variant
+  variant?: "primary" | "ghost" | "secondary"
   fullWidth?: boolean
 }
 
 export function Button({
   variant = "primary",
-  fullWidth = false,
+  fullWidth = true,
   className = "",
   children,
+  disabled,
   ...props
 }: ButtonProps) {
+  if (variant === "primary") {
+    return (
+      <button
+        disabled={disabled}
+        className={`press flex h-[54px] items-center justify-center rounded-xl font-heading text-[15px] font-bold uppercase tracking-wide text-white transition-all ${
+          disabled
+            ? "bg-surface-2 text-text-dim"
+            : "bg-red shadow-[0_8px_24px_-8px_rgba(230,57,70,0.6)]"
+        } ${fullWidth ? "w-full" : ""} ${className}`}
+        {...props}
+      >
+        {children}
+      </button>
+    )
+  }
+
+  if (variant === "ghost") {
+    return (
+      <button
+        disabled={disabled}
+        className={`press flex h-[50px] items-center justify-center gap-2 rounded-xl border border-border-strong font-body text-sm font-semibold text-text transition-all ${
+          fullWidth ? "w-full" : ""
+        } ${className}`}
+        {...props}
+      >
+        {children}
+      </button>
+    )
+  }
+
+  // secondary
   return (
     <button
-      className={`inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3 font-heading font-bold text-sm uppercase tracking-wide transition-all duration-150 disabled:opacity-40 disabled:pointer-events-none ${variants[variant]} ${fullWidth ? "w-full" : ""} ${className}`}
+      disabled={disabled}
+      className={`press flex h-[50px] items-center justify-center gap-2 rounded-xl bg-surface border border-border font-body text-sm font-semibold text-text transition-all ${
+        fullWidth ? "w-full" : ""
+      } ${className}`}
       {...props}
     >
       {children}
