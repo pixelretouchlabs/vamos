@@ -7,6 +7,14 @@ import { ChevRightIcon, MinusIcon, PlusIcon } from "@/components/ui/Icons"
 import { matches } from "@/data/matches"
 import { usePredictionsStore } from "@/lib/predictions"
 
+function Label({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  return (
+    <p className={`mb-2.5 font-heading text-[11px] font-bold uppercase tracking-[1.2px] text-text-dim ${className}`}>
+      {children}
+    </p>
+  )
+}
+
 function ScoreCounter({
   flag,
   code,
@@ -20,41 +28,57 @@ function ScoreCounter({
   value: number
   onChange: (v: number) => void
 }) {
+  const [bump, setBump] = useState(0)
+  const set = (v: number) => {
+    onChange(Math.max(0, Math.min(9, v)))
+    setBump((b) => b + 1)
+  }
+
   return (
-    <div className="flex-1 rounded-2xl border border-border bg-surface p-4">
-      <div className="flex items-center gap-2.5">
-        <span className="text-3xl">{flag}</span>
-        <div>
-          <div className="font-heading text-[13px] font-bold tracking-wide">{code}</div>
-          <div className="text-[11px] text-text-dim">{name}</div>
-        </div>
-      </div>
-      <div className="mt-4 flex items-center justify-between">
+    <div className="flex flex-1 flex-col items-center gap-2 rounded-2xl border border-border bg-surface p-3.5">
+      <span className="text-[42px] leading-none">{flag}</span>
+      <span className="font-heading text-[12px] font-bold tracking-[1.5px] text-text-dim">{name}</span>
+      <div className="mt-1 flex items-center gap-2.5">
         <button
-          onClick={() => onChange(Math.max(0, value - 1))}
-          className="press flex h-10 w-10 items-center justify-center rounded-full bg-surface-2 text-text-dim transition-colors"
+          onClick={() => set(value - 1)}
+          className="press flex h-9 w-9 items-center justify-center rounded-full bg-surface-2 text-text"
         >
-          <MinusIcon size={18} />
+          <MinusIcon size={16} />
         </button>
-        <span className="score-bump font-mono text-[48px] font-black leading-none tracking-tight">
-          {value}
-        </span>
-        <button
-          onClick={() => onChange(Math.min(9, value + 1))}
-          className="press flex h-10 w-10 items-center justify-center rounded-full bg-surface-2 text-text-dim transition-colors"
+        <div
+          key={bump}
+          className="score-bump min-w-[56px] text-center font-mono text-[48px] font-bold leading-none"
         >
-          <PlusIcon size={18} />
+          {value}
+        </div>
+        <button
+          onClick={() => set(value + 1)}
+          className="press flex h-9 w-9 items-center justify-center rounded-full bg-gold text-bg"
+        >
+          <PlusIcon size={16} />
         </button>
       </div>
     </div>
   )
 }
 
-function PtsRow({ label, pts }: { label: string; pts: string }) {
+function PtsRow({ label, pts, highlight }: { label: string; pts: string; highlight?: boolean }) {
   return (
-    <div className="flex items-center justify-between py-1.5 text-[13px]">
-      <span className="text-text-dim">{label}</span>
-      <span className="font-heading font-bold text-gold">{pts}</span>
+    <div
+      className="flex items-center justify-between"
+      style={{
+        padding: "6px 0",
+        borderTop: highlight ? "1px solid rgba(232,197,71,0.16)" : "none",
+        marginTop: highlight ? 8 : 0,
+        paddingTop: highlight ? 12 : 6,
+      }}
+    >
+      <span className={`text-[13px] ${highlight ? "text-text" : "text-text-dim"}`}>{label}</span>
+      <span
+        className={`font-heading font-bold text-gold ${highlight ? "text-[18px] font-extrabold" : "text-[14px]"}`}
+      >
+        +{pts}
+      </span>
     </div>
   )
 }
@@ -73,7 +97,6 @@ export default function PredictMatchPage({
   const [homeScore, setHomeScore] = useState(existing?.homeScore ?? 0)
   const [awayScore, setAwayScore] = useState(existing?.awayScore ?? 0)
   const [goalscorer, setGoalscorer] = useState(existing?.goalscorer ?? "")
-  const [gsFocus, setGsFocus] = useState(false)
 
   if (!match) {
     return (
@@ -90,81 +113,78 @@ export default function PredictMatchPage({
 
   return (
     <div className="animate-fade-in min-h-dvh bg-bg">
-      {/* Back */}
-      <div className="px-[18px] pt-5">
-        <button onClick={() => router.back()} className="press mb-3 flex items-center gap-1 text-xs font-semibold text-text-dim">
-          <ChevRightIcon size={14} className="rotate-180" /> Predictions
+      {/* App bar */}
+      <div className="flex min-h-[44px] items-center gap-3 px-[18px] py-2 pb-3">
+        <button
+          onClick={() => router.back()}
+          className="press flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-surface"
+        >
+          <ChevRightIcon size={18} className="rotate-180" />
         </button>
+        <div className="flex-1 text-center font-heading text-[16px] font-bold uppercase tracking-wide">
+          Match Prediction
+        </div>
+        <div className="w-9" />
       </div>
 
-      <div className="space-y-5 px-[18px]">
-        {/* Match info */}
-        <div>
-          <span className="rounded-full bg-surface-2 px-2.5 py-0.5 font-heading text-[10px] font-bold uppercase tracking-wider text-text-dim">
-            Group {match.group}
+      <div className="px-[18px]">
+        {/* Centered group badge */}
+        <div className="pb-4 pt-1 text-center">
+          <span
+            className="inline-block rounded px-2.5 py-1 font-heading text-[10px] font-bold uppercase tracking-[1.4px]"
+            style={{ background: "#252525", color: "#E8C547" }}
+          >
+            Group {match.group} · {match.date} · {match.timeIST} IST
           </span>
-          <p className="mt-2 text-[12px] text-text-dim">
-            {match.date} · {match.timeIST} IST · {match.venue}
-          </p>
         </div>
 
         {/* Score Counters */}
-        <div className="flex gap-3">
-          <ScoreCounter
-            flag={match.home.flag}
-            code={match.home.code}
-            name={match.home.name}
-            value={homeScore}
-            onChange={setHomeScore}
-          />
-          <ScoreCounter
-            flag={match.away.flag}
-            code={match.away.code}
-            name={match.away.name}
-            value={awayScore}
-            onChange={setAwayScore}
-          />
+        <div className="flex items-stretch gap-2.5">
+          <ScoreCounter flag={match.home.flag} code={match.home.code} name={match.home.name} value={homeScore} onChange={setHomeScore} />
+          <div className="flex items-center font-heading text-[14px] font-extrabold tracking-[2px] text-text-dim">
+            VS
+          </div>
+          <ScoreCounter flag={match.away.flag} code={match.away.code} name={match.away.name} value={awayScore} onChange={setAwayScore} />
         </div>
 
         {/* Goalscorer */}
-        <div>
-          <p className="mb-2.5 font-heading text-[11px] font-bold uppercase tracking-[1.2px] text-text-muted">
-            First Goalscorer (bonus)
-          </p>
+        <div className="mt-5">
+          <div className="mb-2.5 flex items-center justify-between">
+            <Label className="mb-0">First Goalscorer</Label>
+            <span className="font-heading text-[10px] font-bold tracking-wider text-gold">+5 PTS BONUS</span>
+          </div>
           <input
             type="text"
             value={goalscorer}
             onChange={(e) => setGoalscorer(e.target.value)}
-            onFocus={() => setGsFocus(true)}
-            onBlur={() => setGsFocus(false)}
-            placeholder="e.g. Mbappe"
-            className="h-[50px] w-full rounded-xl border bg-surface px-4 font-body text-[14px] font-semibold text-text outline-none transition-all placeholder:text-text-muted"
-            style={{
-              borderColor: gsFocus ? "#E8C547" : "rgba(255,255,255,0.06)",
-              boxShadow: gsFocus ? "0 0 0 4px rgba(232,197,71,0.12)" : "none",
-            }}
+            placeholder="e.g. Vinicius Jr"
+            className="h-[52px] w-full rounded-xl border border-border bg-surface px-4 text-[15px] font-medium text-text outline-none placeholder:text-text-muted"
           />
         </div>
 
-        {/* Points Breakdown */}
+        {/* Points breakdown — accentGrad */}
         <div
-          className="rounded-2xl border border-border p-4"
-          style={{ background: "linear-gradient(160deg, rgba(232,197,71,0.06), rgba(230,57,70,0.04))" }}
+          className="mt-5 rounded-xl border p-4"
+          style={{
+            background: "linear-gradient(180deg, #1A1A2E, #14141f)",
+            borderColor: "rgba(232,197,71,0.16)",
+          }}
         >
-          <p className="mb-1 font-heading text-[11px] font-bold uppercase tracking-[1.2px] text-text-muted">
-            Points Breakdown
+          <p className="mb-2.5 font-heading text-[11px] font-bold uppercase tracking-[1.2px] text-gold">
+            Points Available
           </p>
-          <PtsRow label="Correct winner" pts="+5 pts" />
-          <div className="h-px bg-border" />
-          <PtsRow label="Correct scoreline" pts="+15 pts" />
-          <div className="h-px bg-border" />
-          <PtsRow label="Correct goalscorer" pts="+5 pts" />
+          <PtsRow label="Correct winner" pts="5" />
+          <PtsRow label="Exact scoreline" pts="15" />
+          <PtsRow label="Correct goalscorer" pts="5" />
+          <PtsRow label="Perfect prediction" pts="25" highlight />
         </div>
 
         {/* CTA */}
-        <Button fullWidth onClick={handleSubmit}>
-          {existing ? "Update Prediction" : "Submit Prediction"}
-        </Button>
+        <div className="mt-6">
+          <Button fullWidth onClick={handleSubmit}>
+            {existing ? "Update Prediction" : "Submit Prediction"}
+          </Button>
+        </div>
 
         <div className="h-6" />
       </div>

@@ -2,194 +2,19 @@
 
 import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/Button"
-import { BoltIcon, ChevRightIcon } from "@/components/ui/Icons"
+import { ChevRightIcon } from "@/components/ui/Icons"
 import { useAuth } from "@/hooks/useAuth"
 
-function AuthHero() {
+function AuthMark() {
   return (
-    <div className="relative overflow-hidden px-7 pb-7 pt-6">
-      {/* Radial glows */}
+    <div className="flex items-center gap-2">
       <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background: `radial-gradient(80% 60% at 50% 0%, rgba(232,197,71,0.18), transparent 60%),
-                       radial-gradient(60% 50% at 100% 100%, rgba(230,57,70,0.10), transparent 60%)`,
-        }}
+        className="h-2 w-2 rounded-full bg-gold"
+        style={{ boxShadow: "0 0 12px rgba(232,197,71,0.6)" }}
       />
-      {/* Stadium stripes */}
-      <svg
-        className="pointer-events-none absolute left-0 top-0 w-full opacity-40"
-        height="100"
-        viewBox="0 0 320 100"
-        preserveAspectRatio="none"
-      >
-        <defs>
-          <pattern id="lines" x="0" y="0" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(35)">
-            <line x1="0" y1="0" x2="0" y2="14" stroke="#E8C547" strokeOpacity="0.18" strokeWidth="0.8" />
-          </pattern>
-        </defs>
-        <rect width="320" height="100" fill="url(#lines)" />
-      </svg>
-
-      <div className="relative">
-        <h1
-          className="font-heading text-[56px] font-extrabold leading-[0.95] tracking-[-2px] text-gold"
-          style={{ textShadow: "0 0 30px rgba(232,197,71,0.32)" }}
-        >
-          VAMOS
-        </h1>
-        <p className="mt-1.5 font-heading text-xs font-semibold uppercase tracking-[4px] text-text-dim">
-          World Cup 2026 · For India
-        </p>
-      </div>
-
-      <h2 className="mt-7 font-heading text-[28px] font-bold leading-[1.1] tracking-tight">
-        Predict. Pool. <span className="text-gold">Win.</span>
-      </h2>
-      <p className="mt-2 text-sm leading-relaxed text-text-dim">
-        Play sweepstakes with your crew. Pick a country, predict scores, top the leaderboard.
-      </p>
-    </div>
-  )
-}
-
-function PhoneStep({ phone, setPhone, onNext }: { phone: string; setPhone: (v: string) => void; onNext: () => void }) {
-  const [focus, setFocus] = useState(false)
-  const valid = phone.replace(/\D/g, "").length === 10
-  const formatted = phone.replace(/\D/g, "").replace(/(\d{5})(\d{0,5})/, (_, a, b) => (b ? `${a} ${b}` : a))
-
-  return (
-    <div className="animate-fade-in px-[22px]">
-      <p className="mb-2.5 font-heading text-[11px] font-bold uppercase tracking-[1.2px] text-text-dim">
-        Continue with phone
-      </p>
-
-      <div className="flex gap-2">
-        <button
-          className="press flex min-w-[86px] items-center gap-1.5 rounded-xl border bg-surface px-3 transition-colors"
-          style={{ borderColor: focus ? "#E8C547" : "rgba(255,255,255,0.06)" }}
-        >
-          <span className="text-lg">🇮🇳</span>
-          <span className="font-mono text-[15px] font-semibold">+91</span>
-          <ChevRightIcon size={12} />
-        </button>
-        <input
-          value={formatted}
-          onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
-          onFocus={() => setFocus(true)}
-          onBlur={() => setFocus(false)}
-          placeholder="98765 43210"
-          inputMode="numeric"
-          className="h-[54px] flex-1 rounded-xl border bg-surface px-4 font-mono text-base font-semibold tracking-wide text-text outline-none transition-all"
-          style={{
-            borderColor: focus ? "#E8C547" : "rgba(255,255,255,0.06)",
-            boxShadow: focus ? "0 0 0 4px rgba(232,197,71,0.12)" : "none",
-          }}
-        />
-      </div>
-
-      <div className="mt-4">
-        <Button disabled={!valid} onClick={() => valid && onNext()}>
-          {valid ? "Send OTP" : "Enter Phone Number"}
-        </Button>
-      </div>
-
-      {/* Divider */}
-      <div className="my-5 flex items-center gap-3">
-        <div className="h-px flex-1 bg-border" />
-        <span className="font-heading text-[11px] font-semibold uppercase tracking-[1.2px] text-text-dim">or</span>
-        <div className="h-px flex-1 bg-border" />
-      </div>
-
-      {/* Social */}
-      <div className="space-y-2.5">
-        <Button variant="ghost">
-          <GoogleIcon /> Continue with Google
-        </Button>
-        <button className="press flex h-[50px] w-full items-center justify-center gap-2.5 rounded-xl border border-border-strong bg-black text-sm font-semibold text-white">
-          <AppleIcon /> Continue with Apple
-        </button>
-      </div>
-    </div>
-  )
-}
-
-function OtpStep({ phone, onBack, onDone }: { phone: string; onBack: () => void; onDone: () => void }) {
-  const [otp, setOtp] = useState<string[]>(Array(6).fill(""))
-  const [seconds, setSeconds] = useState(28)
-  const inputsRef = useRef<(HTMLInputElement | null)[]>([])
-
-  useEffect(() => {
-    if (seconds <= 0) return
-    const id = setTimeout(() => setSeconds((s) => s - 1), 1000)
-    return () => clearTimeout(id)
-  }, [seconds])
-
-  const filled = otp.filter((d) => d !== "").length
-  const valid = filled === 6
-  const pretty = phone.replace(/(\d{5})(\d{5})/, "$1 $2")
-
-  function setDigit(i: number, v: string) {
-    const d = v.replace(/\D/g, "").slice(0, 1)
-    const arr = [...otp]
-    arr[i] = d
-    setOtp(arr)
-    if (d && i < 5) inputsRef.current[i + 1]?.focus()
-  }
-
-  return (
-    <div className="animate-fade-in px-[22px]">
-      <button onClick={onBack} className="press mb-3.5 flex items-center gap-1 text-xs font-semibold text-text-dim">
-        <ChevRightIcon size={14} className="rotate-180" /> {pretty}
-      </button>
-
-      <h2 className="font-heading text-[22px] font-bold leading-tight tracking-tight">
-        Enter the 6-digit code
-      </h2>
-      <p className="mt-1.5 text-[13px] leading-relaxed text-text-dim">
-        We sent it to <span className="font-mono text-text">+91 {pretty}</span>
-      </p>
-
-      <div className="mt-5 flex justify-between gap-2">
-        {[0, 1, 2, 3, 4, 5].map((i) => (
-          <input
-            key={i}
-            ref={(el) => { inputsRef.current[i] = el }}
-            value={otp[i]}
-            onChange={(e) => setDigit(i, e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Backspace" && !otp[i] && i > 0) inputsRef.current[i - 1]?.focus()
-            }}
-            inputMode="numeric"
-            maxLength={1}
-            className="h-[54px] w-11 rounded-xl border bg-surface text-center font-mono text-[22px] font-bold text-text outline-none transition-all"
-            style={{
-              borderColor: otp[i] ? "#E8C547" : "rgba(255,255,255,0.06)",
-              boxShadow: otp[i] ? "0 0 0 3px rgba(232,197,71,0.12)" : "none",
-            }}
-          />
-        ))}
-      </div>
-
-      <p className="mt-3.5 text-center text-xs text-text-dim">
-        {seconds > 0 ? (
-          <>Resend code in <span className="font-mono font-semibold text-text">0:{String(seconds).padStart(2, "0")}</span></>
-        ) : (
-          <button onClick={() => setSeconds(28)} className="font-semibold text-gold">Resend code</button>
-        )}
-      </p>
-
-      <div className="mt-5">
-        <Button disabled={!valid} onClick={() => valid && onDone()}>
-          Verify & Continue
-        </Button>
-      </div>
-
-      <div className="mt-4 flex gap-2.5 rounded-xl border border-border bg-surface p-3.5 text-[11px] leading-relaxed text-text-dim">
-        <span className="mt-0.5 text-gold"><BoltIcon size={14} /></span>
-        <span>For demo, any 6 digits work. The real app uses WhatsApp OTP (faster than SMS in India).</span>
-      </div>
+      <span className="font-heading text-[18px] font-extrabold tracking-[1.2px]">
+        VAMOS
+      </span>
     </div>
   )
 }
@@ -213,6 +38,152 @@ function AppleIcon() {
   )
 }
 
+function SocialRow({ icon, label }: { icon: React.ReactNode; label: string }) {
+  return (
+    <button className="press flex h-[52px] w-full items-center gap-3.5 border-b border-border px-1 text-left text-[15px] font-medium">
+      <span className="flex w-5 justify-center">{icon}</span>
+      <span className="flex-1">{label}</span>
+      <ChevRightIcon size={14} className="text-text-dim" />
+    </button>
+  )
+}
+
+function PhoneStep({ phone, setPhone, onNext }: { phone: string; setPhone: (v: string) => void; onNext: () => void }) {
+  const [focus, setFocus] = useState(false)
+  const valid = phone.replace(/\D/g, "").length === 10
+  const formatted = phone.replace(/\D/g, "").replace(/(\d{5})(\d{0,5})/, (_, a, b) => (b ? `${a} ${b}` : a))
+
+  return (
+    <div className="animate-fade-in flex flex-col gap-4">
+      {/* Phone field — borderless, underlined */}
+      <div
+        className="flex items-center pb-3 transition-colors"
+        style={{ borderBottom: `1px solid ${focus ? "#E8C547" : "rgba(255,255,255,0.10)"}` }}
+      >
+        <span className="mr-2.5 font-mono text-[18px] font-semibold text-text-dim">+91</span>
+        <input
+          value={formatted}
+          onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
+          onFocus={() => setFocus(true)}
+          onBlur={() => setFocus(false)}
+          onKeyDown={(e) => { if (e.key === "Enter" && valid) onNext() }}
+          placeholder="98765 43210"
+          inputMode="numeric"
+          autoFocus
+          className="min-w-0 flex-1 bg-transparent p-0 font-mono text-[18px] font-semibold tracking-wide text-text outline-none placeholder:text-text-muted"
+        />
+        {valid && (
+          <button
+            onClick={onNext}
+            className="press flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gold text-bg"
+          >
+            <ChevRightIcon size={18} />
+          </button>
+        )}
+      </div>
+
+      <p className="text-[12px] leading-relaxed text-text-muted">
+        We&apos;ll send you a 6-digit code on WhatsApp.
+      </p>
+
+      {/* Divider */}
+      <div className="my-5 flex items-center gap-3">
+        <div className="h-px flex-1 bg-border" />
+        <span className="text-[10px] font-semibold uppercase tracking-[1.4px] text-text-muted">or</span>
+        <div className="h-px flex-1 bg-border" />
+      </div>
+
+      {/* Social — minimal text rows */}
+      <div className="flex flex-col">
+        <SocialRow icon={<GoogleIcon />} label="Continue with Google" />
+        <SocialRow icon={<AppleIcon />} label="Continue with Apple" />
+      </div>
+    </div>
+  )
+}
+
+function OtpStep({ phone, onBack, onDone }: { phone: string; onBack: () => void; onDone: () => void }) {
+  const [otp, setOtp] = useState<string[]>(Array(6).fill(""))
+  const [seconds, setSeconds] = useState(28)
+  const inputsRef = useRef<(HTMLInputElement | null)[]>([])
+
+  useEffect(() => {
+    inputsRef.current[0]?.focus()
+  }, [])
+
+  useEffect(() => {
+    if (seconds <= 0) return
+    const id = setTimeout(() => setSeconds((s) => s - 1), 1000)
+    return () => clearTimeout(id)
+  }, [seconds])
+
+  const filled = otp.filter((d) => d !== "").length
+  const valid = filled === 6
+  const pretty = phone.replace(/(\d{5})(\d{5})/, "$1 $2")
+
+  // Auto-advance when 6 digits filled
+  useEffect(() => {
+    if (valid) {
+      const t = setTimeout(onDone, 280)
+      return () => clearTimeout(t)
+    }
+  }, [valid, onDone])
+
+  function setDigit(i: number, v: string) {
+    const d = v.replace(/\D/g, "").slice(0, 1)
+    const arr = [...otp]
+    arr[i] = d
+    setOtp(arr)
+    if (d && i < 5) inputsRef.current[i + 1]?.focus()
+  }
+
+  return (
+    <div className="animate-fade-in flex flex-col gap-6">
+      <button onClick={onBack} className="press inline-flex items-center gap-1.5 self-start text-[13px] font-medium text-text-dim">
+        <ChevRightIcon size={14} className="rotate-180" /> +91 {pretty}
+      </button>
+
+      <div>
+        <h2 className="font-heading text-[26px] font-bold leading-tight tracking-[-0.5px]">
+          Enter your code
+        </h2>
+        <p className="mt-2 text-[14px] leading-relaxed text-text-dim">
+          Sent to your WhatsApp.
+        </p>
+      </div>
+
+      <div className="flex justify-between gap-2.5">
+        {[0, 1, 2, 3, 4, 5].map((i) => (
+          <input
+            key={i}
+            ref={(el) => { inputsRef.current[i] = el }}
+            value={otp[i]}
+            onChange={(e) => setDigit(i, e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Backspace" && !otp[i] && i > 0) inputsRef.current[i - 1]?.focus()
+            }}
+            inputMode="numeric"
+            maxLength={1}
+            className="h-[56px] min-w-0 flex-1 border-0 border-b-[1.5px] bg-transparent text-center font-mono text-[26px] font-bold text-text outline-none transition-colors"
+            style={{
+              borderBottomColor: otp[i] ? "#E8C547" : "rgba(255,255,255,0.10)",
+              borderRadius: 0,
+            }}
+          />
+        ))}
+      </div>
+
+      <p className="text-center text-[12px] text-text-dim">
+        {seconds > 0 ? (
+          <>Resend in <span className="font-mono font-semibold text-text">0:{String(seconds).padStart(2, "0")}</span></>
+        ) : (
+          <button onClick={() => setSeconds(28)} className="font-semibold text-gold">Resend code</button>
+        )}
+      </p>
+    </div>
+  )
+}
+
 export default function AuthPage() {
   const [step, setStep] = useState<"phone" | "otp">("phone")
   const [phone, setPhone] = useState("")
@@ -226,16 +197,40 @@ export default function AuthPage() {
 
   return (
     <div className="animate-fade-in min-h-dvh bg-bg">
-      <AuthHero />
-      {step === "phone" && <PhoneStep phone={phone} setPhone={setPhone} onNext={() => setStep("otp")} />}
-      {step === "otp" && <OtpStep phone={phone} onBack={() => setStep("phone")} onDone={handleDone} />}
+      <div className="flex min-h-dvh flex-col px-7 pb-7 pt-5">
+        {/* Top: mark */}
+        <AuthMark />
 
-      <p className="mt-6 px-6 text-center text-[10px] leading-relaxed text-text-muted">
-        By continuing you agree to our <span className="text-text-dim underline">Terms</span> and{" "}
-        <span className="text-text-dim underline">Privacy Policy</span>.
-        <br />
-        Real-money gameplay restricted to states where permitted.
-      </p>
+        {/* Middle: headline + form */}
+        <div className="flex flex-1 flex-col justify-center gap-9 pt-6">
+          <div>
+            <h1
+              className="font-heading text-[34px] font-bold leading-[1.05] tracking-[-1.2px]"
+              style={{ textWrap: "balance" } as React.CSSProperties}
+            >
+              {step === "phone" ? (
+                <>Sign in to <span className="text-gold">Vamos</span></>
+              ) : (
+                "Almost there."
+              )}
+            </h1>
+            <p className="mt-3 max-w-[260px] text-[14px] leading-relaxed text-text-dim">
+              {step === "phone"
+                ? "Predict, pool with friends, win the World Cup."
+                : "Verify your number to continue."}
+            </p>
+          </div>
+
+          {step === "phone" && <PhoneStep phone={phone} setPhone={setPhone} onNext={() => setStep("otp")} />}
+          {step === "otp" && <OtpStep phone={phone} onBack={() => setStep("phone")} onDone={handleDone} />}
+        </div>
+
+        {/* Bottom: legal */}
+        <p className="mt-6 text-center text-[11px] leading-relaxed text-text-muted">
+          By continuing you agree to our <span className="text-text-dim underline">Terms</span> &amp;{" "}
+          <span className="text-text-dim underline">Privacy</span>.
+        </p>
+      </div>
     </div>
   )
 }
