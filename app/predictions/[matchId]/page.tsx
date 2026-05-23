@@ -2,36 +2,59 @@
 
 import { use, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Card } from "@/components/ui/Card"
 import { Button } from "@/components/ui/Button"
-import { Badge } from "@/components/ui/Badge"
+import { ChevRightIcon, MinusIcon, PlusIcon } from "@/components/ui/Icons"
 import { matches } from "@/data/matches"
 import { usePredictionsStore } from "@/lib/predictions"
 
-function ScoreInput({
+function ScoreCounter({
+  flag,
+  code,
+  name,
   value,
   onChange,
 }: {
+  flag: string
+  code: string
+  name: string
   value: number
   onChange: (v: number) => void
 }) {
   return (
-    <div className="flex items-center gap-3">
-      <button
-        onClick={() => onChange(Math.max(0, value - 1))}
-        className="flex h-10 w-10 items-center justify-center rounded-full bg-surface-light text-lg font-bold transition-colors hover:bg-gold/20"
-      >
-        −
-      </button>
-      <span className="w-8 text-center font-mono text-3xl font-black">
-        {value}
-      </span>
-      <button
-        onClick={() => onChange(Math.min(9, value + 1))}
-        className="flex h-10 w-10 items-center justify-center rounded-full bg-surface-light text-lg font-bold transition-colors hover:bg-gold/20"
-      >
-        +
-      </button>
+    <div className="flex-1 rounded-2xl border border-border bg-surface p-4">
+      <div className="flex items-center gap-2.5">
+        <span className="text-3xl">{flag}</span>
+        <div>
+          <div className="font-heading text-[13px] font-bold tracking-wide">{code}</div>
+          <div className="text-[11px] text-text-dim">{name}</div>
+        </div>
+      </div>
+      <div className="mt-4 flex items-center justify-between">
+        <button
+          onClick={() => onChange(Math.max(0, value - 1))}
+          className="press flex h-10 w-10 items-center justify-center rounded-full bg-surface-2 text-text-dim transition-colors"
+        >
+          <MinusIcon size={18} />
+        </button>
+        <span className="score-bump font-mono text-[48px] font-black leading-none tracking-tight">
+          {value}
+        </span>
+        <button
+          onClick={() => onChange(Math.min(9, value + 1))}
+          className="press flex h-10 w-10 items-center justify-center rounded-full bg-surface-2 text-text-dim transition-colors"
+        >
+          <PlusIcon size={18} />
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function PtsRow({ label, pts }: { label: string; pts: string }) {
+  return (
+    <div className="flex items-center justify-between py-1.5 text-[13px]">
+      <span className="text-text-dim">{label}</span>
+      <span className="font-heading font-bold text-gold">{pts}</span>
     </div>
   )
 }
@@ -50,6 +73,7 @@ export default function PredictMatchPage({
   const [homeScore, setHomeScore] = useState(existing?.homeScore ?? 0)
   const [awayScore, setAwayScore] = useState(existing?.awayScore ?? 0)
   const [goalscorer, setGoalscorer] = useState(existing?.goalscorer ?? "")
+  const [gsFocus, setGsFocus] = useState(false)
 
   if (!match) {
     return (
@@ -65,66 +89,85 @@ export default function PredictMatchPage({
   }
 
   return (
-    <div className="animate-fade-in space-y-6 px-4 pt-6">
-      <Badge variant="dim">Group {match.group}</Badge>
-      <p className="text-sm text-text-dim">
-        {match.date} · {match.timeIST} IST · {match.venue}
-      </p>
+    <div className="animate-fade-in min-h-dvh bg-bg">
+      {/* Back */}
+      <div className="px-[18px] pt-5">
+        <button onClick={() => router.back()} className="press mb-3 flex items-center gap-1 text-xs font-semibold text-text-dim">
+          <ChevRightIcon size={14} className="rotate-180" /> Predictions
+        </button>
+      </div>
 
-      <Card glow>
-        <div className="flex items-center justify-between py-4">
-          <div className="flex flex-col items-center gap-2">
-            <span className="text-4xl">{match.home.flag}</span>
-            <span className="font-heading font-bold">{match.home.name}</span>
-          </div>
-          <div className="flex flex-col items-center gap-4">
-            <ScoreInput value={homeScore} onChange={setHomeScore} />
-            <span className="text-xs text-text-dim">vs</span>
-            <ScoreInput value={awayScore} onChange={setAwayScore} />
-          </div>
-          <div className="flex flex-col items-center gap-2">
-            <span className="text-4xl">{match.away.flag}</span>
-            <span className="font-heading font-bold">{match.away.name}</span>
-          </div>
-        </div>
-      </Card>
-
-      <Card>
-        <label className="block">
-          <span className="text-sm font-semibold text-text-dim">
-            First Goalscorer (bonus +5 pts)
+      <div className="space-y-5 px-[18px]">
+        {/* Match info */}
+        <div>
+          <span className="rounded-full bg-surface-2 px-2.5 py-0.5 font-heading text-[10px] font-bold uppercase tracking-wider text-text-dim">
+            Group {match.group}
           </span>
+          <p className="mt-2 text-[12px] text-text-dim">
+            {match.date} · {match.timeIST} IST · {match.venue}
+          </p>
+        </div>
+
+        {/* Score Counters */}
+        <div className="flex gap-3">
+          <ScoreCounter
+            flag={match.home.flag}
+            code={match.home.code}
+            name={match.home.name}
+            value={homeScore}
+            onChange={setHomeScore}
+          />
+          <ScoreCounter
+            flag={match.away.flag}
+            code={match.away.code}
+            name={match.away.name}
+            value={awayScore}
+            onChange={setAwayScore}
+          />
+        </div>
+
+        {/* Goalscorer */}
+        <div>
+          <p className="mb-2.5 font-heading text-[11px] font-bold uppercase tracking-[1.2px] text-text-muted">
+            First Goalscorer (bonus)
+          </p>
           <input
             type="text"
             value={goalscorer}
             onChange={(e) => setGoalscorer(e.target.value)}
+            onFocus={() => setGsFocus(true)}
+            onBlur={() => setGsFocus(false)}
             placeholder="e.g. Mbappe"
-            className="mt-1 block w-full rounded-xl border border-surface-light bg-bg px-4 py-3 text-white placeholder:text-text-dim focus:border-gold focus:outline-none"
+            className="h-[50px] w-full rounded-xl border bg-surface px-4 font-body text-[14px] font-semibold text-text outline-none transition-all placeholder:text-text-muted"
+            style={{
+              borderColor: gsFocus ? "#E8C547" : "rgba(255,255,255,0.06)",
+              boxShadow: gsFocus ? "0 0 0 4px rgba(232,197,71,0.12)" : "none",
+            }}
           />
-        </label>
-      </Card>
-
-      <Card className="bg-navy/50">
-        <h3 className="mb-2 text-sm font-semibold text-text-dim">Points</h3>
-        <div className="space-y-1 text-sm">
-          <div className="flex justify-between">
-            <span className="text-text-dim">Correct winner</span>
-            <span>5 pts</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-text-dim">Correct scoreline</span>
-            <span>15 pts</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-text-dim">Correct goalscorer</span>
-            <span>5 pts</span>
-          </div>
         </div>
-      </Card>
 
-      <Button fullWidth onClick={handleSubmit}>
-        {existing ? "Update Prediction" : "Submit Prediction"}
-      </Button>
+        {/* Points Breakdown */}
+        <div
+          className="rounded-2xl border border-border p-4"
+          style={{ background: "linear-gradient(160deg, rgba(232,197,71,0.06), rgba(230,57,70,0.04))" }}
+        >
+          <p className="mb-1 font-heading text-[11px] font-bold uppercase tracking-[1.2px] text-text-muted">
+            Points Breakdown
+          </p>
+          <PtsRow label="Correct winner" pts="+5 pts" />
+          <div className="h-px bg-border" />
+          <PtsRow label="Correct scoreline" pts="+15 pts" />
+          <div className="h-px bg-border" />
+          <PtsRow label="Correct goalscorer" pts="+5 pts" />
+        </div>
+
+        {/* CTA */}
+        <Button fullWidth onClick={handleSubmit}>
+          {existing ? "Update Prediction" : "Submit Prediction"}
+        </Button>
+
+        <div className="h-6" />
+      </div>
     </div>
   )
 }

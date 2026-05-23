@@ -1,85 +1,97 @@
 "use client"
 
-import { Card } from "@/components/ui/Card"
+import { Avatar } from "@/components/ui/Avatar"
+import { ArrowUpIcon, ArrowDownIcon, BoltIcon } from "@/components/ui/Icons"
 import { useLeaderboard } from "@/hooks/useLeaderboard"
 import { useAuth } from "@/hooks/useAuth"
+
+function PodiumPlace({ entry, height, medal }: { entry: { name: string; points: number; avatar: string }; height: string; medal: string }) {
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <span className="text-2xl">{medal}</span>
+      <Avatar name={entry.name} size={40} ring={medal === "🥇" ? "#E8C547" : undefined} />
+      <span className="max-w-[80px] truncate text-[12px] font-semibold">{entry.name}</span>
+      <div
+        className={`${height} flex w-[76px] items-start justify-center rounded-t-2xl pt-3`}
+        style={{ background: "linear-gradient(180deg, rgba(232,197,71,0.18), rgba(232,197,71,0.04))" }}
+      >
+        <span className="font-heading text-[15px] font-bold text-gold">{entry.points}</span>
+      </div>
+    </div>
+  )
+}
 
 export default function LeaderboardPage() {
   const { leaderboard } = useLeaderboard()
   const user = useAuth((s) => s.user)
 
-  return (
-    <div className="animate-fade-in space-y-6 px-4 pt-6">
-      <h1 className="font-heading text-2xl font-bold">Leaderboard</h1>
+  const top3 = leaderboard.slice(0, 3)
 
-      {/* Top 3 podium */}
-      <div className="flex items-end justify-center gap-4 py-4">
-        {[1, 0, 2].map((idx) => {
-          const entry = leaderboard[idx]
-          if (!entry) return null
-          const heights = ["h-28", "h-20", "h-16"]
-          const medals = ["🥇", "🥈", "🥉"]
-          return (
-            <div key={entry.userId} className="flex flex-col items-center gap-2">
-              <span className="text-2xl">{medals[entry.rank - 1]}</span>
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-surface-light text-sm font-bold">
-                {entry.avatar}
-              </div>
-              <span className="text-xs font-medium">{entry.name}</span>
-              <div
-                className={`${heights[entry.rank - 1]} w-20 rounded-t-xl bg-gold/20 flex items-center justify-center`}
-              >
-                <span className="font-heading text-lg font-bold text-gold">
-                  {entry.points}
-                </span>
-              </div>
-            </div>
-          )
-        })}
+  return (
+    <div className="animate-fade-in min-h-dvh bg-bg">
+      {/* Header */}
+      <div className="px-[18px] pt-6">
+        <h1 className="font-heading text-[22px] font-extrabold tracking-tight">Leaderboard</h1>
+        <p className="mt-0.5 text-[12px] text-text-dim">Top predictors this tournament</p>
       </div>
 
+      {/* Podium */}
+      {top3.length >= 3 && (
+        <div className="mt-6 flex items-end justify-center gap-3 px-[18px]">
+          <PodiumPlace entry={top3[1]} height="h-[80px]" medal="🥈" />
+          <PodiumPlace entry={top3[0]} height="h-[110px]" medal="🥇" />
+          <PodiumPlace entry={top3[2]} height="h-[64px]" medal="🥉" />
+        </div>
+      )}
+
       {/* Full list */}
-      <Card>
-        <div className="space-y-3">
-          {leaderboard.map((entry) => (
+      <div className="mt-6 px-[18px]">
+        <div className="overflow-hidden rounded-2xl border border-border bg-surface">
+          {leaderboard.map((entry, i) => (
             <div
               key={entry.userId}
-              className={`flex items-center gap-3 rounded-xl px-2 py-2 ${
-                entry.userId === user?.id ? "bg-gold/10" : ""
-              }`}
+              className="flex items-center gap-3 px-3.5 py-3"
+              style={{
+                borderTop: i ? "1px solid rgba(255,255,255,0.06)" : "none",
+                background: entry.userId === user?.id ? "rgba(232,197,71,0.08)" : "transparent",
+              }}
             >
-              <span className="w-8 text-center text-sm font-bold text-text-dim">
-                #{entry.rank}
-              </span>
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-light text-xs font-semibold">
-                {entry.avatar}
-              </div>
-              <span className="flex-1 text-sm font-medium">
-                {entry.name}
-                {entry.userId === user?.id && (
-                  <span className="ml-1 text-xs text-gold">(you)</span>
-                )}
-              </span>
-              <span className="font-heading font-bold">{entry.points}</span>
               <span
-                className={`text-xs ${
-                  entry.movement === "up"
-                    ? "text-green"
-                    : entry.movement === "down"
-                      ? "text-red"
-                      : "text-text-dim"
+                className={`w-[22px] text-center font-heading text-[13px] font-bold ${
+                  entry.rank <= 3 ? "text-gold" : "text-text-dim"
                 }`}
               >
-                {entry.movement === "up"
-                  ? "▲"
-                  : entry.movement === "down"
-                    ? "▼"
-                    : "–"}
+                {entry.rank}
+              </span>
+              <Avatar name={entry.name} size={32} />
+              <span className="flex-1 text-[13px] font-semibold">
+                {entry.name}
+                {entry.userId === user?.id && (
+                  <span className="ml-1.5 font-medium text-text-dim">(you)</span>
+                )}
+              </span>
+              <span className="flex items-center gap-1 font-heading text-[14px] font-bold text-gold">
+                <BoltIcon size={12} /> {entry.points}
+              </span>
+              <span
+                className={`w-4 ${
+                  entry.movement === "up" ? "text-green" : entry.movement === "down" ? "text-red" : "text-text-muted"
+                }`}
+              >
+                {entry.movement === "up" ? (
+                  <ArrowUpIcon size={14} />
+                ) : entry.movement === "down" ? (
+                  <ArrowDownIcon size={14} />
+                ) : (
+                  <span className="block h-[2px] w-3 rounded bg-current" />
+                )}
               </span>
             </div>
           ))}
         </div>
-      </Card>
+      </div>
+
+      <div className="h-8" />
     </div>
   )
 }
